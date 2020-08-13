@@ -86,7 +86,7 @@ module.exports = {
   // },
 
   env: {
-    apiToken: 'AIzaSyDQPFJHqs8_9A-OhxwHz_v-l8bglFYHo-0'
+    apiToken: 'AIzaSyC1gJcdNljp3rzyzCwPuKgdWS0XkjHQ21s'
   },
 
   /*

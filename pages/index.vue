@@ -1,83 +1,56 @@
 <template>
-  <v-app
-    dark
-    :class="{
-      'app-background': true,
-      'app-background-portrait': appOrientation === 'portrait',
-      'app-background-landscape': appOrientation === 'landscape'
-    }"
-  >
-    <v-content>
-      <v-container>
-        <v-layout class="pt-5" justify-center>
-          <v-layout
-            style="max-width: 600px; position: relative;"
-            column
-            align-center
-          >
-            <a href="/" class="d-flex justify-center align-center">
-              <img
-                src="~assets/img/logo.jpg"
-                class="mx-auto"
-                style="width: 294px; max-width: 60%;"
-                alt="Logo"
-              >
-            </a>
+  <div>
+    <v-layout justify-center class="w-100 mt-5">
+      <!-- TODO: Fix search not syncing to v-model/query -->
+      <v-autocomplete
+        v-model="query"
+        :items="preResults"
+        :loading="preSearching"
+        :search-input.sync="search"
+        :allow-overflow="false"
+        hide-no-data
+        hide-selected
+        no-filter
+        item-text="snippet.title"
+        item-value="snippet.title"
+        autofocus
+        dense
+        placeholder="Search"
+        single-line
+        solo-inverted
+        hide-details
+        cache-items
+        clearable
+        class="w-100 search-bar"
+        :menu-props="{ contentClass: 'search-menu' }"
+        color="primary"
+        @keyup.enter="fullSearch(search)"
+      >
+        <template #item="{ item }">
+          <p class="ma-0 pa-2" v-html="item" />
+        </template>
+      </v-autocomplete>
 
-            <h1
-              :class="[
-                $vuetify.breakpoint.xsOnly ? 'headline' : 'display-1',
-                'mt-2'
-              ]"
-              style="letter-spacing: 4px; font-weight: 300;"
-            >
-              YouTube DOWNLOAD
-            </h1>
+      <v-btn
+        :class="{ 'px-1': $vuetify.breakpoint.xsOnly }"
+        :disabled="!search"
+        color="primary"
+        class="search-btn ma-0"
+        style="height: auto;"
+        @click="fullSearch(search)"
+      >
+        <v-icon>search</v-icon>
+      </v-btn>
+    </v-layout>
 
-            <v-layout justify-center class="w-100 mt-5">
-              <!-- TODO: Fix search not syncing to v-model/query -->
-              <v-autocomplete
-                v-model="query"
-                :items="preResults"
-                :loading="preSearching"
-                :search-input.sync="search"
-                hide-no-data
-                hide-selected
-                no-filter
-                item-text="snippet.title"
-                item-value="snippet.title"
-                autofocus
-                dense
-                placeholder="Search"
-                single-line
-                solo-inverted
-                hide-details
-                class="w-100 search-bar"
-                :menu-props="{ contentClass: 'search-menu' }"
-                color="primary"
-                @keyup.enter="fullSearch(search)"
-              />
+    <p class="caption mt-2" style="opacity: 0.8">
+      By pressing the 🔍 button, you agree to all of our
+      <a href="/music/download/terms-and-conditions">
+        terms and conditions
+      </a>
+    </p>
 
-              <v-btn
-                :class="{ 'px-1': $vuetify.breakpoint.xsOnly }"
-                :disabled="!search"
-                color="primary"
-                class="search-btn ma-0"
-                style="height: auto;"
-                @click="fullSearch(search)"
-              >
-                <v-icon>search</v-icon>
-              </v-btn>
-            </v-layout>
-
-            <p class="caption mt-2" style="opacity: 0.8">
-              By pressing the 🔍 button, you agree to all of our
-              <a href="/music/download/terms-and-conditions">
-                terms and conditions
-              </a>
-            </p>
-
-            <!-- <v-btn
+    <!-- <v-btn
             v-bind="{ depressed: !showAdvanced }"
             color="transparent"
             @click="showAdvanced = !showAdvanced"
@@ -89,100 +62,98 @@
             ></v-icon>
           </v-btn> -->
 
-            <!--
+    <!--
               TODO: Make into its own component
                 Make it shown always
                 But toggles between play and paused state
              -->
-            <v-scale-transition>
-              <div v-if="isLoading" class="app-loader mt-4">
-                <div
-                  v-for="i in 10"
-                  :key="i"
-                  :class="`rectangle_${i}`"
-                  :style="{
-                    animationPlayState: isLoading ? 'running' : 'paused'
-                  }"
-                />
-              </div>
-            </v-scale-transition>
+    <v-scale-transition>
+      <div v-if="isLoading" class="app-loader mt-4">
+        <div
+          v-for="i in 10"
+          :key="i"
+          :class="`rectangle_${i}`"
+          :style="{
+            animationPlayState: isLoading ? 'running' : 'paused'
+          }"
+        />
+      </div>
+    </v-scale-transition>
 
-            <p
-              v-if="queried && results.length <= 0"
-              class="mt-5 black-transparent pa-2 rounded-1"
-            >
-              Sorry. We found <strong>0 results</strong> for your query
-              {{ query }}
-            </p>
+    <p
+      v-if="queried && results.length <= 0"
+      class="mt-5 black-transparent pa-2 rounded-1"
+    >
+      Sorry. We found <strong>0 results</strong> for your query
+      {{ query }}
+    </p>
 
-            <p
-              v-else-if="queried && results.length > 0"
-              class="mt-5 black-transparent pa-2 rounded-1"
-            >
-              Here you can find all search results for your search query
-              {{ query }}. We've found {{ results.length }} matching results.
-              Now you have the opportunity to listen to each result before
-              downloading it. If you wish to do so, click on the
-              <b>Play</b> button.
-            </p>
+    <p
+      v-else-if="queried && results.length > 0"
+      class="mt-5 black-transparent pa-2 rounded-1"
+    >
+      Here you can find all search results for your search query
+      {{ query }}. We've found {{ results.length }} matching results.
+      Now you have the opportunity to listen to each result before
+      downloading it. If you wish to do so, click on the
+      <b>Play</b> button.
+    </p>
 
-            <template v-if="results">
-              <search-result
-                v-for="(result, i) in results"
-                :key="i"
-                :result="result"
-              />
-            </template>
+    <content v-if="results" ref="search-results">
+      <search-result
+        v-for="(result, i) in results"
+        :key="i"
+        :result="result"
+        :index="i"
+        @playing-video="registerPlayingElement($event)"
+      />
+    </content>
 
-            <p class="mt-5 black-transparent rounded-1 pa-2">
-              Welcome to MOD-mp3 - a popular and free mp3 search engine and
-              tool. Just type in your search query, choose the sources you would
-              like to search on and click the search button. The search will
-              take only a short while (if you select all sources it may take a
-              bit longer). As soon as we find any results matching your search
-              query - you will get a list of your results. It is that simple.
-              <br><br>
+    <p class="mt-5 black-transparent rounded-1 pa-2">
+      Welcome to MOD-mp3 - a popular and free mp3 search engine and
+      tool. Just type in your search query, choose the sources you would
+      like to search on and click the search button. The search will
+      take only a short while (if you select all sources it may take a
+      bit longer). As soon as we find any results matching your search
+      query - you will get a list of your results. It is that simple.
+      <br><br>
 
-              Alternatively, you can also paste in a video URL and click the
-              search button to convert a video's audio into an mp3. Once you
-              click the search button the conversion of the video will start. As
-              soon it is ready you will be able to download the converted
-              file.<br><br>
+      Alternatively, you can also paste in a video URL and click the
+      search button to convert a video's audio into an mp3. Once you
+      click the search button the conversion of the video will start. As
+      soon it is ready you will be able to download the converted
+      file.<br><br>
 
-              The usage of our website is free and does not require any software
-              or registration. By using our website you accept our
-              <a href="/music/download/terms-and-conditions"> Terms of Use </a>.
-              <br><br>
+      The usage of our website is free and does not require any software
+      or registration. By using our website you accept our
+      <a href="/music/download/terms-and-conditions"> Terms of Use </a>.
+      <br><br>
 
-              Have fun and enjoy the use of our website.
-            </p>
+      Have fun and enjoy the use of our website.
+    </p>
 
-            <v-fab-transition>
-              <v-btn
-                color="primary"
-                dark
-                fixed
-                bottom
-                right
-                fab
-                small
-                class="fab-search"
-                @click="focusOnSearch"
-              >
-                <v-icon>search</v-icon>
-              </v-btn>
-            </v-fab-transition>
-          </v-layout>
-          <!-- App 600px -->
-        </v-layout>
-      </v-container>
-    </v-content>
-  </v-app>
+    <v-fab-transition>
+      <v-btn
+        color="primary"
+        dark
+        fixed
+        bottom
+        right
+        fab
+        small
+        class="fab-search"
+        @click="focusOnSearch"
+      >
+        <v-icon>search</v-icon>
+      </v-btn>
+    </v-fab-transition>
+  </div>
 </template>
 
 <style>
 .search-bar {
   position: relative;
+  overflow-x: hidden;
 }
 
 .search-bar::before,
@@ -201,40 +172,6 @@
 
 .search-bar::before {
   background: rgba(255, 255, 255, 0.9) !important;
-}
-
-.glass {
-  position: relative;
-  overflow: hidden;
-}
-
-.glass > * {
-  position: relative;
-}
-
-.glass::before {
-  height: 100vh;
-  width: 100vw;
-  display: block;
-  position: absolute;
-  content: '';
-  background: url('~assets/img/background/background-blur-1242x2208.jpg')
-    no-repeat bottom right fixed;
-  background-size: cover;
-}
-
-@media screen and (min-width: 600px) {
-  .glass::before {
-    background-image: url('~assets/img/background/background-blur-2560x1440.jpg');
-  }
-}
-
-.app-background-portrait .glass::before {
-  background-image: url('~assets/img/background/background-blur-1242x2208.jpg');
-}
-
-.app-background-landscape .glass::before {
-  background-image: url('~assets/img/background/background-blur-2560x1440.jpg');
 }
 
 .search-bar .v-input__slot {
@@ -344,7 +281,6 @@ export default {
 
   data() {
     return {
-      appOrientation: '',
       searchDescriptionLimit: 60,
       query: '',
       search: '',
@@ -352,7 +288,8 @@ export default {
       preSearching: false,
       isLoading: false,
       queried: false,
-      results: []
+      results: [],
+      playingElement: ''
       // showAdvanced: false
     }
   },
@@ -379,17 +316,11 @@ export default {
     }
   },
 
-  created() {
-    window.addEventListener('resize', this.calculateScreenDimension)
-  },
-
-  mounted() {
-    this.calculateScreenDimension()
-  },
-
   methods: {
     fullSearch(query) {
       if (!query) return
+
+      this.query = query
 
       this.isLoading = true
       this.queried = false
@@ -472,6 +403,18 @@ export default {
         })
         .then(response => response.data.items[0].contentDetails)
         .catch(error => console.error(error))
+    },
+
+    registerPlayingElement(i) {
+      if (this.playingElement) {
+        this.stopPlayingElement(this.playingElement)
+      }
+
+      this.playingElement = i
+    },
+
+    stopPlayingElement(i) {
+      this.$refs['search-results'].$children[i].$data.shouldCreatePlayer = false
     },
 
     createPlayer(i) {
@@ -559,17 +502,6 @@ export default {
     focusOnSearch() {
       this.$vuetify.goTo('.search-bar', { offset: -50 })
       document.querySelector('.search-bar input').focus()
-    },
-
-    calculateScreenDimension() {
-      console.info('Checking for dimensions')
-      if (window.innerHeight > window.innerWidth) {
-        // portrait
-        this.appOrientation = 'portrait'
-      } else {
-        // landscape
-        this.appOrientation = 'landscape'
-      }
     }
   }
 }

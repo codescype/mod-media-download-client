@@ -126,3 +126,37 @@ button
 .app-background.app-background-landscape::before {
   background-image: url('~assets/img/background/background-2560x1440.jpg');
 }
+
+.glass {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass > * {
+  position: relative;
+}
+
+.glass::before {
+  height: 100vh;
+  width: 100vw;
+  display: block;
+  position: absolute;
+  content: '';
+  background: url('~assets/img/background/background-blur-1242x2208.jpg')
+    no-repeat bottom right fixed;
+  background-size: cover;
+}
+
+@media screen and (min-width: 600px) {
+  .glass::before {
+    background-image: url('~assets/img/background/background-blur-2560x1440.jpg');
+  }
+}
+
+.app-background-portrait .glass::before {
+  background-image: url('~assets/img/background/background-blur-1242x2208.jpg');
+}
+
+.app-background-landscape .glass::before {
+  background-image: url('~assets/img/background/background-blur-2560x1440.jpg');
+}

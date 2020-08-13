@@ -3,7 +3,7 @@
     <v-layout column align-center light class="pa-3">
       <p
         class="mb-3 white--text text-xs-center"
-        v-text="result.snippet.title"
+        v-html="result.snippet.title"
       />
 
       <p class="caption">
@@ -306,6 +306,11 @@ export default {
     result: {
       required: true,
       type: Object
+    },
+
+    index: {
+      required: true,
+      type: Number
     }
   },
 
@@ -329,6 +334,8 @@ export default {
       downloading: false,
       downloaded: false,
 
+      downloadPercentage: 0,
+
       downloadURL: '',
 
       audioDownloadQualities: ['96', '128', '192', '360'], // bitrate
@@ -338,7 +345,7 @@ export default {
 
   methods: {
     createPlayer() {
-      // TODO: Clear any existing player on page first
+      this.$emit('playing-video', this.index)
       this.creatingPlayer = true
       this.shouldCreatePlayer = true
     },
@@ -385,15 +392,40 @@ export default {
               id: this.result.id.videoId,
               quality: this.downloadQuality
             },
-            responseType: 'arraybuffer'
+
+            responseType: 'arraybuffer',
+
+            onDownloadProgress: progressEvent => {
+              /**
+               * TODO: send actual content-length through headers from the server like X-Actual-Content-Length and then read the correct size in onDownloadProgress
+               */
+
+              console.dir(progressEvent)
+              this.downloadPercentage = parseInt(
+                Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              )
+            }
           }
         )
         .then(response => {
           // console.dir(response)
           // response.data.pipe()
+
+          console.log(
+            'we have received a response... will start creating blob from stream'
+          )
+
+          try {
+            response.pipe()
+          } catch (e) {
+            console.error(e)
+          }
+
           const file = new Blob([new Uint8Array(response.data)], {
             type: this.downloadType === 'mp3' ? 'audio/mp3' : 'video/mp4'
           })
+
+          console.log('created file... creating download url')
           this.downloadURL = window.URL.createObjectURL(file)
         })
         .catch(error => console.error(error))
